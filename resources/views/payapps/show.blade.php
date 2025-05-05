@@ -14,5 +14,6 @@
         <p><strong>Retainage Percentage:</strong> {{ $payapp->retainage_percentage }}</p>
         <p><strong>Application Date:</strong> {{ $payapp->application_date }}</p>
     </div>
+    <a href="{{ route('payapps.edit', $payapp->id) }}">Edit</a>
 </div>
 @endsection

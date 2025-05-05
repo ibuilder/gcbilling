@@ -11,5 +11,5 @@
         <p><strong>Sort Order:</strong> {{ $sov->sort_order }}</p>
     </div>
 
-    <a href="{{ route('sovs.edit', $sov->id) }}" class="btn btn-primary">Edit</a>
+    <a href="{{ route('schedule_of_values.edit', $sov->id) }}" class="btn btn-primary">Edit</a>
 @endsection

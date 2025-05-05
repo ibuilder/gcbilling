@@ -3,7 +3,7 @@
 @section('content')
     <h1>SOVs</h1>
 
-    <a href="{{ route('sovs.create') }}" class="btn btn-primary">Create New SOV</a>
+    <a href="{{ route('schedule_of_values.create') }}" class="btn btn-primary">Create New SOV</a>
 
     <table class="table">
         <thead>
@@ -24,7 +24,7 @@
                     <td>{{ $sov->description }}</td>
                     <td>{{ $sov->amount }}</td>
                     <td>{{ $sov->sort_order }}</td>
-                    <td><a href="{{ route('sovs.show', $sov->id) }}">View</a></td>
+                    <td><a href="{{ route('schedule_of_values.show', $sov->id) }}">View</a></td>
                 </tr>
             @endforeach
         </tbody>

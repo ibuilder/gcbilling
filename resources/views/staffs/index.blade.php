@@ -3,6 +3,8 @@
 @section('content')
     <h1>Project Staff</h1>
 
+    <a href="{{ route('staffs.create') }}" class="btn btn-primary">Create New Staff</a>
+
     <table class="table">
         <thead>
             <tr>

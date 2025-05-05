@@ -4,6 +4,16 @@
 <div class="container">
     <h1>Create Change Order</h1>
 
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <form action="{{ route('change_orders.store') }}" method="POST">
         @csrf
 

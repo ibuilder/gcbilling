@@ -3,6 +3,8 @@
 @section('content')
 <div class="container">
 <table>
+    <a href="{{ route('payapps.create') }}" class="btn btn-primary mb-3">Create Pay App</a>
+
     <thead>
         <tr>
             <th>Project ID</th>

@@ -1,12 +1,24 @@
 @extends('layouts.app')
 
 @section('content')
-<form method="POST" action="{{ route('staffs.store') }}">
-    @csrf
+<div class="container">
+    <h1>Create Staff</h1>
+    
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+    <form method="POST" action="{{ route('staffs.store') }}">
+        @csrf
 
-    <div>
-        <label for="project_id">Project ID</label>
-        <input type="text" name="project_id" id="project_id" required>
+        <div class="form-group">
+            <label for="project_id">Project ID</label>
+            <input type="number" name="project_id" id="project_id" class="form-control" required>
     </div>
 
     <div>
@@ -27,5 +39,6 @@
     <div>
         <button type="submit">Create Staff Member</button>
     </div>
-</form>
+    </form>
+</div>
 @endsection

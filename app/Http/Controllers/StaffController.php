@@ -30,7 +30,7 @@ class StaffController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'project_id' => 'required',
+            'project_id' => 'required|integer|exists:projects,id',
             'name' => 'required|max:255',
             'role' => 'required',
             'rate' => 'required|numeric',
@@ -63,6 +63,7 @@ class StaffController extends Controller
     public function update(Request $request, Staff $staff)
     {
          $validatedData = $request->validate([
+            'project_id' => 'required|integer|exists:projects,id',
             'name' => 'required|max:255',
             'role' => 'required',
             'rate' => 'required|numeric',

@@ -30,7 +30,7 @@ class ChangeOrderController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'project_id' => 'required',
+            'project_id' => 'required|integer|exists:projects,id',
             'co_number' => 'required|string',
             'description' => 'required|string',
             'amount' => 'required|numeric',
@@ -65,7 +65,7 @@ class ChangeOrderController extends Controller
     public function update(Request $request, ChangeOrder $changeOrder)
     {
         $validatedData = $request->validate([
-            'project_id' => 'required',
+            'project_id' => 'required|integer|exists:projects,id',
             'co_number' => 'required|string',
             'description' => 'required|string',
             'amount' => 'required|numeric',

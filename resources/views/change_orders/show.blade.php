@@ -14,7 +14,6 @@
                 <p><strong>Date Approved:</strong> {{ $changeOrder->date_approved }}</p>
 
 
-
-                <a href="{{ route('change-orders.edit', $changeOrder->id) }}" class="btn btn-primary">Edit</a>
+                <a href="{{ route('change_orders.edit', $changeOrder->id) }}" class="btn btn-primary">Edit</a>
     </div>
 @endsection

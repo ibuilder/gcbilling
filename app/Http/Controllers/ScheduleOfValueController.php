@@ -38,7 +38,7 @@ class ScheduleOfValueController extends Controller
 
         ScheduleOfValue::create($validatedData);
 
-        return redirect()->route('schedule-of-values.index')->with('success', 'Schedule of Value created successfully.');
+        return redirect()->route('schedule_of_values.index')->with('success', 'Schedule of Value created successfully.');
     }
 
     /**
@@ -71,7 +71,7 @@ class ScheduleOfValueController extends Controller
 
         $scheduleOfValue->update($validatedData);
 
-        return redirect()->route('schedule-of-values.index')->with('success', 'Schedule of Value updated successfully.');
+        return redirect()->route('schedule_of_values.index')->with('success', 'Schedule of Value updated successfully.');
     }
 
     /**
@@ -80,7 +80,7 @@ class ScheduleOfValueController extends Controller
     public function destroy(ScheduleOfValue $scheduleOfValue)
     {
         $scheduleOfValue->delete();
-
-        return redirect()->route('schedule-of-values.index')->with('success', 'Schedule of Value deleted successfully.');
+        
+        return redirect()->route('schedule_of_values.index')->with('success', 'Schedule of Value deleted successfully.');
     }
 }

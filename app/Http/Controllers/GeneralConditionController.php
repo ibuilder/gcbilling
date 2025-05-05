@@ -30,8 +30,8 @@ class GeneralConditionController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'project_id' => 'required',
-            'staff_id' => 'required',
+            'project_id' => 'required|integer|exists:projects,id',
+            'staff_id' => 'required|integer|exists:staffs,id',
             'type' => 'required',
             'description' => 'required',
             'amount' => 'required|numeric',
@@ -65,8 +65,8 @@ class GeneralConditionController extends Controller
     public function update(Request $request, GeneralCondition $generalCondition)
     {
         $validatedData = $request->validate([
-            'project_id' => 'required',
-            'staff_id' => 'required',
+            'project_id' => 'required|integer|exists:projects,id',
+            'staff_id' => 'required|integer|exists:staffs,id',
             'type' => 'required',
             'description' => 'required',
             'amount' => 'required|numeric',

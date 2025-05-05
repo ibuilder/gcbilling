@@ -10,4 +10,7 @@
 <p><strong>Amount:</strong> {{ $generalCondition->amount }}</p>
 <p><strong>Date:</strong> {{ $generalCondition->date }}</p>
 <p><strong>Hours Worked:</strong> {{ $generalCondition->hours_worked }}</p>
+
+<a href="{{ route('general_conditions.edit', $generalCondition->id) }}" class="btn btn-primary">Edit</a>
+
 @endsection
