@@ -2,91 +2,44 @@
 
 namespace App\Models;
 
-use App\Database;
-use PDO;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-class User extends Model
+class User extends Authenticatable
 {
-    protected static string $tableName = 'users'; // Assuming table name is 'users'
-
-    // Define expected properties (optional, for clarity)
-    public ?int $id = null;
-    public ?string $username = null;
-    public ?string $email = null;
-    public ?string $password_hash = null;
-    public ?string $name = null;
-    public ?string $role = null;
-    public bool $is_active = true;
-    public ?string $last_login_at = null;
-    public ?string $created_at = null;
-    public ?string $updated_at = null;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * Find a user by username or email
+     * The attributes that are mass assignable.
      *
-     * @param string $identifier Username or email.
-     * @return static|null
+     * @var array<int, string>
      */
-    public function findByIdentifier(string $identifier): ?static
-    {
-        return self::query($this->db)
-            ->where('username', '=', $identifier)
-            ->orWhere('email', '=', $identifier)
-            ->first();
-    }
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
 
-     /**
-     * Update specific fields for a user.
-     * Note: This bypasses the main 'save' method's attribute tracking.
-     * Use carefully or integrate with the main update logic.
+    /**
+     * The attributes that should be hidden for serialization.
      *
-     * @param int $id User ID
-     * @param array $data Associative array of fields to update.
-     * @return bool Success status.
+     * @var array<int, string>
      */
-    public function update(int $id, array $data): bool
-    {
-        if (empty($data)) {
-            return true; // Nothing to update
-        }
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
-        // Add updated_at timestamp automatically
-        if (!isset($data['updated_at'])) {
-             $data['updated_at'] = date('Y-m-d H:i:s');
-        }
-
-        $setParts = [];
-        $bindings = [];
-        foreach ($data as $key => $value) {
-            $setParts[] = "{$key} = :{$key}";
-            $bindings[$key] = $value;
-        }
-        $setClause = implode(', ', $setParts);
-        $sql = "UPDATE " . static::$tableName . " SET {$setClause} WHERE id = :id";
-        $bindings['id'] = $id;
-
-        try {
-            $stmt = $this->db->prepare($sql);
-            return $stmt->execute($bindings);
-        } catch (\PDOException $e) {
-            error_log("Database Error (User::update): " . $e->getMessage());
-            return false;
-        }
-    }
-
-    // Override save to handle timestamps automatically
-    public function save(): bool
-    {
-        $now = date('Y-m-d H:i:s');
-        if (!isset($this->attributes[static::$primaryKey]) || empty($this->attributes[static::$primaryKey])) {
-            // Inserting
-            if (!isset($this->attributes['created_at'])) {
-                $this->setAttribute('created_at', $now);
-            }
-        }
-        // Always set updated_at on save
-        $this->setAttribute('updated_at', $now);
-
-        return parent::save();
-    }
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 }

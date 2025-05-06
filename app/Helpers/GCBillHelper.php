@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\ApplicationForPayment;
+use App\Models\ChangeOrder;
 use App\Models\ScheduleOfValue;
 use Illuminate\Support\Collection;
 use PDF;
@@ -32,15 +33,22 @@ class GCBillHelper
      */
     public static function calculateG702(ApplicationForPayment $application, Collection $scheduleOfValues): array
     {
+        $project = $application->project;
+        $gmp = $project->gmp;
+        $changeOrders = ChangeOrder::where('project_id', $project->id)->where('status', 'approved')->get();
+        $changeOrdersTotal = $changeOrders->sum('amount');
+
         $totalWorkCompleted = $application->total_work_completed;
         $totalMaterialsStored = $application->total_materials_stored;
         $retainagePercentage = $application->retainage_percentage;
         $previousPayments = 0; // You might need to fetch this from previous applications
         $totalCompletedAndStored = $totalWorkCompleted + $totalMaterialsStored;
+        
         $totalRetainage = self::calculateRetainage($totalCompletedAndStored, $retainagePercentage);
         $totalEarnedLessRetainage = $totalCompletedAndStored - $totalRetainage;
         $amountDue = $totalEarnedLessRetainage - $previousPayments;
-
+        
+        
         return [
             'application_number' => $application->application_number,
             'application_date' => $application->application_date,
@@ -54,6 +62,8 @@ class GCBillHelper
             'total_earned_less_retainage' => $totalEarnedLessRetainage,
             'previous_payments' => $previousPayments,
             'amount_due' => $amountDue,
+            'change_orders' => $changeOrdersTotal,
+            'gmp' => $gmp,
         ];
     }
 
@@ -89,11 +99,13 @@ class GCBillHelper
             }
 
             $totalCompletedAndStoredToDate = $previousWorkCompleted + $previousStored + $currentWorkCompleted + $currentStored;
-            $balanceToFinish = $sov->amount - $totalCompletedAndStoredToDate;
+            $balanceToFinish = $sov->amount - $totalCompletedAndStoredToDate;            
+            $percentage = ($sov->amount > 0) ? ($totalCompletedAndStoredToDate / $sov->amount) * 100 : 0;
 
             $g703Data[] = [
                 'line_item_id' => $sov->id,
                 'description' => $sov->description,
+                'percentage' => round($percentage, 2),
                 'scheduled_value' => $sov->amount,
                 'previous_work_completed' => $previousWorkCompleted,
                 'previous_stored' => $previousStored,

@@ -1,19 +1,46 @@
+php
 <?php
 
 namespace App\Http\Controllers;
 
 use App\Models\GeneralCondition;
+use App\Models\Project;
 use Illuminate\Http\Request;
 
 class GeneralConditionController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $generalConditions = GeneralCondition::all();
-        return view('general_conditions.index', compact('generalConditions'));
+        $generalConditions = $this->filter($request);
+        $projectIds = Project::pluck('id')->unique();
+        $types = GeneralCondition::pluck('type')->unique();
+
+        return view('general_conditions.index', compact('generalConditions', 'projectIds', 'types'));
+    }
+    
+     /**
+     * Filter the general conditions.
+     */
+    public function filter(Request $request)
+    {
+        $query = GeneralCondition::query();
+
+        if ($request->has('project_id') && $request->project_id != '') {
+            $query->where('project_id', $request->project_id);
+        }
+
+        if ($request->has('type') && $request->type != '') {
+            $query->where('type', $request->type);
+        }
+
+        return $query->get();
     }
 
     /**
@@ -74,7 +101,7 @@ class GeneralConditionController extends Controller
             'hours_worked' => 'nullable|numeric',
         ]);
 
-        $generalCondition->update($validatedData);\n        
+        $generalCondition->update($validatedData);
         return redirect()->route('general_conditions.index')->with('success', 'General Condition updated successfully.');
     }
 

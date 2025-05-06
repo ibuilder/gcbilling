@@ -2,11 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\GCBillHelper;
+use App\Models\ApplicationForPaymentLineItem;
+use App\Models\Project;
+use App\Models\ChangeOrder;
+use App\Models\ScheduleOfValue;
 use App\Models\Payapp;
 use Illuminate\Http\Request;
 
 class PayappController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -40,15 +49,37 @@ class PayappController extends Controller
             'retainage_percentage' => 'required|numeric',
             'application_date' => 'required|date',
         ]);
-
-         Payapp::create($validatedData);
-
-         return redirect()->route('payapps.index');
-    }
-
+        
+        $payapp = Payapp::create($validatedData);
+        
+        //Get the project.
+        $project = Project::find($payapp->project_id);
+        
+        // Get the Schedule of Values for this project
+        $scheduleOfValues = ScheduleOfValue::where('project_id', $payapp->project_id)->get();
+        
+        // Get the G702 data
+        $g702Data = GCBillHelper::calculateG702($payapp, $scheduleOfValues, $project);
+        
+        // Get the G703 data
+        $g703Data = GCBillHelper::generateG703($scheduleOfValues, $payapp);
+        
+        foreach($g703Data as $data){
+            ApplicationForPaymentLineItem::create([
+                'application_for_payment_id' => $payapp->id,
+                'schedule_of_value_id' => $data['line_item_id'],
+                'previous_work_completed' => $data['previous_work_completed'],
+                'previous_stored' => $data['previous_stored'],
+                'current_work_completed' => $data['current_work_completed'],
+                'current_stored' => $data['current_stored'],
+            ]);
+        }
+        return redirect()->route('payapps.show', $payapp);
+        }
+    
     /**
      * Display the specified resource.
-     */
+     */    
     public function show(Payapp $payapp)
     {
         return view('payapps.show', compact('payapp'));
@@ -77,8 +108,29 @@ class PayappController extends Controller
             'retainage_percentage' => 'required|numeric',
             'application_date' => 'required|date',
          ]);
-
+         
          $payapp->update($validatedData);
+         
+         //Get the project.
+        $project = Project::find($payapp->project_id);
+        
+        // Get the Schedule of Values for this project
+        $scheduleOfValues = ScheduleOfValue::where('project_id', $payapp->project_id)->get();
+        
+        // Get the G702 data
+        $g702Data = GCBillHelper::calculateG702($payapp, $scheduleOfValues, $project);
+        
+        // Get the G703 data
+        $g703Data = GCBillHelper::generateG703($scheduleOfValues, $payapp);
+        
+        foreach($g703Data as $data){
+            ApplicationForPaymentLineItem::where('application_for_payment_id', $payapp->id)->where('schedule_of_value_id', $data['line_item_id'])->update([
+                'previous_work_completed' => $data['previous_work_completed'],
+                'previous_stored' => $data['previous_stored'],
+                'current_work_completed' => $data['current_work_completed'],
+                'current_stored' => $data['current_stored'],
+            ]);
+        }
          return redirect()->route('payapps.index');
     }
 
@@ -91,4 +143,38 @@ class PayappController extends Controller
 
         return redirect()->route('payapps.index');
     }
+    
+    /**
+     * Exports the specified resource to a PDF.
+     */
+    public function exportPdf(Payapp $payapp)
+    {
+         //Get the project.
+        $project = Project::find($payapp->project_id);
+        
+        // Get the Schedule of Values for this project
+        $scheduleOfValues = ScheduleOfValue::where('project_id', $payapp->project_id)->get();
+        
+        // Get the G702 data
+        $g702Data = GCBillHelper::calculateG702($payapp, $scheduleOfValues, $project);
+        
+        // Get the G703 data
+        $g703Data = GCBillHelper::generateG703($scheduleOfValues, $payapp);
+        $changeOrders = ChangeOrder::where('project_id', $project->id)->get();
+        
+        return GCBillHelper::generatePdf('payapps.show', compact('payapp', 'project', 'g702Data', 'g703Data', 'changeOrders'), 'payapp.pdf');
+    }
+    
+     /**
+     * Exports the specified resource to excel.
+     */
+    public function exportExcel(Payapp $payapp)
+    {
+         // Get the G703 data
+        $g703Data = ApplicationForPaymentLineItem::where('application_for_payment_id', $payapp->id)->get()->toArray();
+        $filename = 'payapp' . $payapp->id . '.xlsx';
+        return GCBillHelper::generateExcel($g703Data, $filename);
+    }
+
+
 }
