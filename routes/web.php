@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\StaffController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\SocialiteController;
 
 
 Route::get('/', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
@@ -25,5 +26,8 @@ Route::middleware('auth')->group(function () {
 Route::get('/staffs/export', [StaffController::class, 'export'])->name('staffs.export');
 Route::get('/projects/export', [ProjectController::class, 'export'])->name('projects.export');
 
+// Socialite Routes
+Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirectToProvider'])->name('socialite.redirect');
+Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProviderCallback'])->name('socialite.callback');
 
 require __DIR__.'/auth.php';
