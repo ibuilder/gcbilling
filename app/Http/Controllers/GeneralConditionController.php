@@ -1,4 +1,3 @@
-php
 <?php
 
 namespace App\Http\Controllers;
@@ -6,12 +5,46 @@ namespace App\Http\Controllers;
 use App\Models\GeneralCondition;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class GeneralConditionController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
+    }
+
+     /**
+     * Export the general conditions.
+     */
+    public function export(Request $request)
+    {
+         $generalConditions = $this->filter($request);
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="general_conditions.csv"',
+        ];
+
+        $callback = function () use ($generalConditions) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Project ID', 'Staff ID', 'Type', 'Description', 'Amount', 'Date', 'Hours Worked']);
+
+            foreach ($generalConditions as $generalCondition) {
+                fputcsv($file, [
+                    $generalCondition->project_id,
+                    $generalCondition->staff_id,
+                    $generalCondition->type,
+                    $generalCondition->description,
+                    $generalCondition->amount,
+                    $generalCondition->date,
+                    $generalCondition->hours_worked,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return new Response($callback, 200, $headers);
     }
     /**
      * Display a listing of the resource.
@@ -21,8 +54,14 @@ class GeneralConditionController extends Controller
         $generalConditions = $this->filter($request);
         $projectIds = Project::pluck('id')->unique();
         $types = GeneralCondition::pluck('type')->unique();
+        $totalAmount = $generalConditions->sum('amount');
+        $typeBreakdowns = $generalConditions->groupBy('type')->map(function ($items) {
+            return $items->sum('amount');
+        });
 
-        return view('general_conditions.index', compact('generalConditions', 'projectIds', 'types'));
+        $totalAmount = $generalConditions->sum('amount');
+
+        return view('general_conditions.index', compact('generalConditions', 'projectIds', 'types', 'totalAmount', 'typeBreakdowns'));
     }
     
      /**
@@ -30,13 +69,23 @@ class GeneralConditionController extends Controller
      */
     public function filter(Request $request)
     {
-        $query = GeneralCondition::query();
+         $query = GeneralCondition::query();
 
         if ($request->has('project_id') && $request->project_id != '') {
             $query->where('project_id', $request->project_id);
         }
 
         if ($request->has('type') && $request->type != '') {
+
+            $query->where('type', $request->type);
+        }
+
+        if ($request->has('start_date') && $request->start_date != '' && $request->has('end_date') && $request->end_date != '') {
+            $query->whereBetween('date', [$request->start_date, $request->end_date]);
+        } elseif ($request->has('start_date') && $request->start_date != '') {
+            $query->where('date', '>=', $request->start_date);
+        } elseif ($request->has('end_date') && $request->end_date != '') {
+            $query->where('date', '<=', $request->end_date);
             $query->where('type', $request->type);
         }
 

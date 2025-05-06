@@ -4,16 +4,66 @@ namespace App\Http\Controllers;
 
 use App\Models\Staff;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class StaffController extends Controller
 {
+     /**
+     * Export the staffs.
+     */
+    public function export(Request $request)
+    {
+        $staffs = $this->filter($request);
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="staffs.csv"',
+        ];
+
+        $callback = function () use ($staffs) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Project ID', 'Name', 'Role', 'Rate']);
+
+            foreach ($staffs as $staff) {
+                fputcsv($file, [
+                    $staff->project_id,
+                    $staff->name,
+                    $staff->role,
+                    $staff->rate,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return new Response($callback, 200, $headers);
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $staffs = Staff::all();
-        return view('staffs.index', compact('staffs'));
+        $staffs = $this->filter($request);
+        $totalRate = $staffs->sum('rate');
+        $roleBreakdowns = $staffs->groupBy('role')->map(function ($items) {
+            return $items->sum('rate');
+        });
+        return view('staffs.index', compact('staffs', 'totalRate', 'roleBreakdowns'));
+    }
+
+    /**
+     * Filter the staffs.
+     */
+    public function filter(Request $request)
+    {
+        $query = Staff::query();
+        if ($request->has('project_id') && $request->project_id != '') {
+            $query->where('project_id', $request->project_id);
+        }
+        if ($request->has('role') && $request->role != '') {
+            $query->where('role', $request->role);
+        }
+        return $query->get();
     }
 
     /**
