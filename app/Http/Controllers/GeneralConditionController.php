@@ -69,24 +69,25 @@ class GeneralConditionController extends Controller
      */
     public function filter(Request $request)
     {
-         $query = GeneralCondition::query();
+        $query = GeneralCondition::query();
 
-        if ($request->has('project_id') && $request->project_id != '') {
+        if ($request->filled('project_id')) {
             $query->where('project_id', $request->project_id);
         }
 
-        if ($request->has('type') && $request->type != '') {
-
+        if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
 
-        if ($request->has('start_date') && $request->start_date != '' && $request->has('end_date') && $request->end_date != '') {
-            $query->whereBetween('date', [$request->start_date, $request->end_date]);
-        } elseif ($request->has('start_date') && $request->start_date != '') {
-            $query->where('date', '>=', $request->start_date);
-        } elseif ($request->has('end_date') && $request->end_date != '') {
-            $query->where('date', '<=', $request->end_date);
-            $query->where('type', $request->type);
+        $startDate = $request->filled('start_date') ? $request->start_date : null;
+        $endDate = $request->filled('end_date') ? $request->end_date : null;
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('date', [$startDate, $endDate]);
+        } elseif ($startDate) {
+            $query->where('date', '>=', $startDate);
+        } elseif ($endDate) {
+            $query->where('date', '<=', $endDate);
         }
 
         return $query->get();

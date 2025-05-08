@@ -30,14 +30,14 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'name' => 'required',
-            'project_number' => '',
-            'address' => 'required',
-            'owner_name' => '',
-            'architect_name' => '',
+            'name' => 'required|string|max:255',
+            'project_number' => 'nullable|string|max:255',
+            'address' => 'required|string|max:255',
+            'owner_name' => 'nullable|string|max:255',
+            'architect_name' => 'nullable|string|max:255',
             'contract_amount' => 'required|numeric',
             'contract_date' => 'nullable|date',
-            'retainage_percentage' => 'nullable|numeric',
+            'retainage_percentage' => 'nullable|numeric|min:0|max:100',
             'gmp' => 'nullable|numeric',
         ]);
 
@@ -68,14 +68,14 @@ class ProjectController extends Controller
     public function update(Request $request, Project $project)
     {
         $validatedData = $request->validate([
-            'name' => 'required',
-            'project_number' => '',
-            'address' => 'required',
-            'owner_name' => '',
-            'architect_name' => '',
+            'name' => 'required|string|max:255',
+            'project_number' => 'nullable|string|max:255',
+            'address' => 'required|string|max:255',
+            'owner_name' => 'nullable|string|max:255',
+            'architect_name' => 'nullable|string|max:255',
             'contract_amount' => 'required|numeric',
             'contract_date' => 'nullable|date',
-            'retainage_percentage' => 'nullable|numeric',
+            'retainage_percentage' => 'nullable|numeric|min:0|max:100',
             'gmp' => 'nullable|numeric',
         ]);
 
